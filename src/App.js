@@ -1,77 +1,54 @@
-import { useEffect, useState } from 'react';
-import React from 'react';
-import './App.css';
+import React, { useState } from "react";
+import './App.css'
 
-function App() {
-  const [boxes, setBoxes] = useState([]);
-  const [duplicatedBoxes, setDuplicatedBoxes] = useState([]);
-  
+const ChessBoard = () => {
+  const [selected, setSelected] = useState(null);
 
+  const handleSquareClick = (row, col) => {
+    setSelected({ row, col });
+  };
 
-  useEffect(() => {
-    let n = 0;
-    let id = 0;
-    let newArr = [];
-
-    for (let i = 1; i < 9; i++) {
-      n++;
-      for (let j = 1; j < 9; j++) {
-        id = id + 1;
-        if (n % 2 === 0) {
-          newArr.push({ "color": "black", "id": id })
-        } else {
-          newArr.push({ "color": "white", "id": id })
-        }
-        n++
-      }
+  const isHighlighted = (row, col) => {
+    if (!selected) {
+      return false;
     }
+    const { row: selectedRow, col: selectedCol } = selected;
+    return (
+      row + col === selectedRow + selectedCol ||
+      row - col === selectedRow - selectedCol
+    );
+  };
 
-    setBoxes(newArr)
-    setDuplicatedBoxes(newArr)
-
-  }, [])
-
-
-  const handleClick = (item) => {
-
-    if (item.color === "white" || item.color === "red") {
-      const clickedId = item.id;
-
-      const clickedRow = Math.floor((clickedId - 1) / 8);
-      const clickedCol = (clickedId - 1) % 8;
-
-      const diagonalBoxes = duplicatedBoxes.filter(box => {
-        const row = Math.floor((box.id - 1) / 8);
-        const col = (box.id - 1) % 8;
-        console.log(row,col)
-        return Math.abs(row - clickedRow) === Math.abs(col - clickedCol);
-      });
-
-      const newBoxes = duplicatedBoxes.map(box => {
-        if (diagonalBoxes.includes(box)) {
-          return { "color": "red", "id": box.id };
-        }
-        return box;
-      });
-
-      setBoxes(newBoxes);
-    }
+  const renderSquare = (row, col) => {
+    const isWhite = (row + col) % 2 === 0;
+    const className = `square ${isWhite ? "white" : "black"} ${
+      selected && selected.row === row && selected.col === col
+        ? "selected"
+        : ""
+    } ${isHighlighted(row, col) ? "highlighted" : ""}`;
+    return (
+      <div
+        key={`${row}-${col}`}
+        className={className}
+        onClick={() => handleSquareClick(row, col)}
+      />
+    )
   }
-  return (
-   <>
-   <div className='main'>
-      <div className='boxes'>
-        {boxes.length > 0 &&
-          React.Children.toArray(
-            boxes.map((item) => (
-              <div onClick={() => handleClick(item)} style={{ background: item.color }} className='box'></div>
-            ))
-          )
-        }
-      </div>
-    </div>
-   </>
-  );
-}
 
-export default App;
+  const renderRow = (row) => {
+    const squares = [];
+    for (let col = 0; col < 8; col++) {
+      squares.push(renderSquare(row, col));
+    }
+    return <div key={row} className="row">{squares}</div>;
+  };
+
+  const rows = [];
+  for (let row = 0; row < 8; row++) {
+    rows.push(renderRow(row));
+  }
+
+  return <div className="board">{rows}</div>;
+};
+
+export default ChessBoard;
